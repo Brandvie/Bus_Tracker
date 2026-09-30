@@ -1,0 +1,13 @@
+Comparison of IoT Ideas
+Idea	Main Purpose	Difficulty
+Bus Tracker	Counts passengers and detects overcrowding	Medium
+Smart Bin	Detects when bins are full	Easy–Medium
+Library Occupancy	Shows available space in a room	Medium
+Why Bus Tracker Was Chosen
+The Bus Tracker was chosen because:
+•	It solves a clear real-world problem: bus overcrowding.
+•	It uses sensors and a Raspberry Pi in a practical way.
+•	It has clear users: passengers and bus drivers.
+•	It provides good opportunities for user stories and Scrum development.
+•	The project is achievable within the semester while still being challenging enough to demonstrate IoT skills.
+
