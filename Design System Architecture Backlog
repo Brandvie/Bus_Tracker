@@ -1,0 +1,56 @@
+Design System Architecture Backlog
+
+1. System Components
+
+Sensors: Detect when people enter or leave the bus.
+
+Raspberry Pi: Reads the sensors and keeps track of the passenger count.
+
+Backend/API: Receives data and checks the bus capacity.
+
+Database: Stores passenger counts and sensor events.
+
+Front-end App: Displays the current number of passengers and crowd status.
+
+Alarm: Alerts the driver when the bus is over capacity.
+
+2. System Architecture
+
+[Door Sensors]
+
+       ↓
+
+[Raspberry Pi]
+
+       ↓
+
+[Backend API]
+
+       ↓
+
+[Database]
+
+       ↓
+
+[Front-end App]
+
+       ↓
+
+[Passenger Count / Crowd Level]
+
+[Raspberry Pi] → [Alarm]
+
+3. Key Technical Decisions
+
+Controller: Raspberry Pi
+
+Sensors: IR break-beam sensors
+
+Occupancy calculation: Raspberry Pi
+
+Data updates: Whenever someone enters or leaves
+
+Database data: Bus ID, timestamp, IN/OUT event, passenger count
+
+Alarm: Activated when passenger count reaches or exceeds capacity
+
