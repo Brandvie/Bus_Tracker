@@ -1,0 +1,20 @@
+Architecture Diagram
+Description: Design a diagram showing how the Bus Tracker hardware and software communicate.
+Tasks:
+- Include IR sensors, Raspberry Pi, MQTT, backend API, database, and front-end app.
+- Show how passenger data moves through the system.
+- Include capacity checking and the overcrowding alarm.
+Acceptance criteria:
+- All main components are included.
+- Data flow is clearly shown.
+- Driver and passenger interfaces are connected to the system.
+2. Database Design
+Description: Design a database to store bus details and passenger entry/exit events.
+Tasks:
+- Create the Bus and Event table designs.
+- Define primary keys and foreign keys.
+- Plan how to calculate passenger occupancy.
+Acceptance criteria:
+- Tables and relationships are documented.
+- Entry/exit events include timestamps and bus IDs.
+- The database supports current occupancy and recent activity queries.
