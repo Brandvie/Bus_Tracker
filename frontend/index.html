@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DkIT Bus Tracker</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f5f9;
+            margin: 0;
+            text-align: center;
+        }
+
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 20px;
+        }
+
+        main {
+            margin-top: 80px;
+        }
+
+        h1 {
+            color: #003366;
+        }
+
+        p {
+            font-size: 18px;
+            color: #555;
+        }
+
+        button {
+            background-color: #003366;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0055a5;
+        }
+
+        footer {
+            margin-top: 100px;
+            padding: 15px;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h2>DkIT Bus Tracker</h2>
+    </header>
+
+    <main>
+        <h1>Welcome to DkIT Bus Tracker</h1>
+
+        <p>
+            Check bus occupancy and crowd levels before your journey.
+        </p>
+
+        <p>
+            Our system helps passengers know how busy a bus is.
+        </p>
+
+        <button onclick="checkBackend()">
+            Check Backend
+        </button>
+
+        <p id="status"></p>
+    </main>
+
+    <footer>
+        <p>DkIT Bus Tracker Project - 2026</p>
+    </footer>
+
+    <script>
+        async function checkBackend() {
+            const status = document.getElementById("status");
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/");
+
+                const data = await response.json();
+
+                status.textContent = data.message;
+                status.style.color = "green";
+            }
+            catch (error) {
+                status.textContent = "Backend is not connected.";
+                status.style.color = "red";
+            }
+        }
+    </script>
+
+</body>
+</html>
