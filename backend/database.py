@@ -19,7 +19,7 @@ database = client["bus_tracker"]
 buses_collection = database["buses"]
 occupancy_collection = database["occupancy"]
 
-# Test connection
+# Test connection 
 try:
     client.admin.command("ping")
     print("Connected to MongoDB successfully!")
