@@ -1,32 +1,27 @@
-
-def calculate_occupancy(passenger_count, capacity):
-
-    if capacity <= 0:
-        raise ValueError("Capacity must be greater than zero")
+def calculate_occupancy(passenger_count):
+    capacity = 25
 
     if passenger_count < 0:
-        raise ValueError("Passenger count cannot be negative")
+        passenger_count = 0
 
     if passenger_count > capacity:
-        raise ValueError("Passenger count cannot exceed capacity")
+        passenger_count = capacity
 
-    percentage = (passenger_count / capacity) * 100
-
-    available_seats = capacity - passenger_count
-
-    if percentage < 50:
+    if passenger_count <= 10:
         status = "Quiet"
 
-    elif percentage < 100:
+    elif passenger_count <= 20:
+        status = "Normal amount"
+
+    elif passenger_count < 25:
         status = "Busy"
 
     else:
         status = "Full"
 
     return {
-        "passenger_count": passenger_count,
+        "current_passengers": passenger_count,
         "capacity": capacity,
-        "occupancy_percentage": round(percentage),
-        "available_seats": available_seats,
-        "status": status
+        "crowd_status": status,
+        "available_spaces": capacity - passenger_count
     }
