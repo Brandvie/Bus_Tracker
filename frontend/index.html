@@ -1,0 +1,586 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>DkIT Bus Tracker</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f5f9;
+            margin: 0;
+            text-align: center;
+            color: #333;
+        }
+
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 20px;
+        }
+
+        header h2 {
+            margin: 0;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #003366;
+        }
+
+        p {
+            font-size: 16px;
+            color: #555;
+        }
+
+        .card {
+            background-color: white;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .card h2 {
+            color: #003366;
+        }
+
+        .passenger-count {
+            font-size: 55px;
+            font-weight: bold;
+            color: #003366;
+            margin: 15px 0;
+        }
+
+        .capacity {
+            font-size: 18px;
+            color: #777;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 18px;
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .quiet {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .normal {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .busy {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .full {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 10px;
+            height: 25px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #28a745;
+            transition: width 0.4s;
+        }
+
+        button {
+            background-color: #003366;
+            color: white;
+            padding: 12px 20px;
+            margin: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background-color: #0055a5;
+        }
+
+        button:disabled {
+            background-color: #777;
+            cursor: not-allowed;
+        }
+
+        .reset-button {
+            background-color: #dc3545;
+        }
+
+        .reset-button:hover {
+            background-color: #b52a37;
+        }
+
+        .connection {
+            font-weight: bold;
+        }
+
+        .connected {
+            color: green;
+        }
+
+        .disconnected {
+            color: red;
+        }
+
+        #message {
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        footer {
+            margin-top: 50px;
+            padding: 15px;
+            color: #777;
+        }
+
+        @media (max-width: 600px) {
+            main {
+                margin: 20px auto;
+                padding: 10px;
+            }
+
+            .passenger-count {
+                font-size: 40px;
+            }
+
+            button {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h2>DkIT Bus Tracker</h2>
+    <p style="color:white;">IoT Bus Occupancy System</p>
+</header>
+
+<main>
+
+    <h1>Welcome to DkIT Bus Tracker</h1>
+
+    <p>
+        Check bus occupancy and crowd levels before your journey.
+    </p>
+
+    <!-- Backend Connection -->
+    <div class="card">
+
+        <h2>Backend Connection</h2>
+
+        <p id="backendStatus" class="connection disconnected">
+            Backend connection has not been checked.
+        </p>
+
+        <p id="databaseStatus" class="connection disconnected">
+            MongoDB connection has not been checked.
+        </p>
+
+        <button onclick="checkConnections()" id="connectionButton">
+            Check Backend & Database
+        </button>
+
+    </div>
+
+    <!-- Bus Occupancy -->
+    <div class="card">
+
+        <h2>Bus Occupancy</h2>
+
+        <p>Bus ID: DKIT_BUS_01</p>
+
+        <div class="passenger-count">
+            <span id="passengerCount">0</span>
+        </div>
+
+        <p class="capacity">
+            Passengers / <span id="capacity">25</span> Maximum
+        </p>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <p>
+            Current Crowd Level:
+        </p>
+
+        <span id="crowdStatus" class="status-badge quiet">
+            Quiet
+        </span>
+
+        <p id="motionStatus">
+            Motion detected: No
+        </p>
+
+        <button onclick="loadOccupancy()" id="refreshButton">
+            Refresh Occupancy
+        </button>
+
+    </div>
+
+    <!-- Movement Simulation -->
+    <div class="card">
+
+        <h2>Passenger Movement Simulation</h2>
+
+        <p>
+            Simulate passengers entering or leaving the bus.
+            This is for Alpha testing.
+        </p>
+
+        <button onclick="simulateMovement('in')" id="enterButton">
+            +1 Passenger Entering
+        </button>
+
+        <button onclick="simulateMovement('out')" id="exitButton">
+            -1 Passenger Leaving
+        </button>
+
+        <br>
+
+        <button onclick="resetOccupancy()" class="reset-button" id="resetButton">
+            Reset Passenger Count
+        </button>
+
+        <p id="message"></p>
+
+    </div>
+
+</main>
+
+<footer>
+    <p>DkIT Bus Tracker Project - 2026</p>
+</footer>
+
+<script>
+
+    // Backend API URL
+    const API_URL = "http://127.0.0.1:8000";
+
+    // Bus ID
+    const BUS_ID = "DKIT_BUS_01";
+
+
+    // Check backend and MongoDB connection
+    async function checkConnections() {
+
+        const backendStatus = document.getElementById("backendStatus");
+        const databaseStatus = document.getElementById("databaseStatus");
+        const button = document.getElementById("connectionButton");
+
+        button.disabled = true;
+
+        backendStatus.textContent = "Checking backend...";
+        databaseStatus.textContent = "Checking MongoDB...";
+
+        backendStatus.className = "connection";
+        databaseStatus.className = "connection";
+
+        try {
+
+            const backendResponse = await fetch(API_URL + "/");
+
+            if (!backendResponse.ok) {
+                throw new Error("Backend unavailable");
+            }
+
+            const backendData = await backendResponse.json();
+
+            backendStatus.textContent =
+                "Backend: Connected - " + backendData.message;
+
+            backendStatus.className = "connection connected";
+
+        }
+        catch (error) {
+
+            backendStatus.textContent = "Backend: Disconnected";
+
+            backendStatus.className = "connection disconnected";
+
+        }
+
+        try {
+
+            const databaseResponse = await fetch(API_URL + "/database");
+
+            const databaseData = await databaseResponse.json();
+
+            if (databaseResponse.ok &&
+                databaseData.message === "MongoDB connection successful") {
+
+                databaseStatus.textContent = "MongoDB: Connected";
+
+                databaseStatus.className = "connection connected";
+
+            }
+            else {
+
+                databaseStatus.textContent = "MongoDB: Disconnected";
+
+                databaseStatus.className = "connection disconnected";
+
+            }
+
+        }
+        catch (error) {
+
+            databaseStatus.textContent = "MongoDB: Disconnected";
+
+            databaseStatus.className = "connection disconnected";
+
+        }
+
+        button.disabled = false;
+
+    }
+
+
+    // Retrieve current bus occupancy from MongoDB
+    async function loadOccupancy() {
+
+        const button = document.getElementById("refreshButton");
+
+        button.disabled = true;
+
+        try {
+
+            const response = await fetch(
+                API_URL + "/api/occupancy/" + BUS_ID
+            );
+
+            if (!response.ok) {
+                throw new Error("Could not retrieve occupancy");
+            }
+
+            const data = await response.json();
+
+            // Display passenger count
+            document.getElementById("passengerCount").textContent =
+                data.current_passengers;
+
+            // Display bus capacity
+            document.getElementById("capacity").textContent =
+                data.capacity;
+
+            // Display crowd status
+            const crowdStatus = document.getElementById("crowdStatus");
+
+            crowdStatus.textContent = data.crowd_status;
+
+            crowdStatus.className =
+                "status-badge " + data.crowd_status.toLowerCase();
+
+            // Update progress bar
+            const percentage =
+                (data.current_passengers / data.capacity) * 100;
+
+            const progressBar = document.getElementById("progressBar");
+
+            progressBar.style.width = percentage + "%";
+
+            if (data.crowd_status === "Quiet") {
+                progressBar.style.backgroundColor = "#28a745";
+            }
+            else if (data.crowd_status === "Normal") {
+                progressBar.style.backgroundColor = "#17a2b8";
+            }
+            else if (data.crowd_status === "Busy") {
+                progressBar.style.backgroundColor = "#ffc107";
+            }
+            else {
+                progressBar.style.backgroundColor = "#dc3545";
+            }
+
+            // Display motion status
+            document.getElementById("motionStatus").textContent =
+                "Motion detected: " +
+                (data.motion_detected ? "Yes" : "No");
+
+            document.getElementById("message").textContent =
+                "Occupancy data updated successfully.";
+
+            document.getElementById("message").style.color = "green";
+
+        }
+        catch (error) {
+
+            document.getElementById("message").textContent =
+                "Could not load occupancy. Check the backend and MongoDB.";
+
+            document.getElementById("message").style.color = "red";
+
+        }
+
+        button.disabled = false;
+
+    }
+
+
+    // Simulate passenger entering or leaving
+    async function simulateMovement(direction) {
+
+        const message = document.getElementById("message");
+
+        const enterButton = document.getElementById("enterButton");
+        const exitButton = document.getElementById("exitButton");
+
+        enterButton.disabled = true;
+        exitButton.disabled = true;
+
+        try {
+
+            const response = await fetch(
+                API_URL + "/api/occupancy/" + BUS_ID + "/movement",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        direction: direction,
+                        quantity: 1
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.detail || "Movement update failed"
+                );
+
+            }
+
+            message.textContent =
+                "Passenger movement updated successfully.";
+
+            message.style.color = "green";
+
+            // Refresh occupancy display
+            await loadOccupancy();
+
+        }
+        catch (error) {
+
+            message.textContent = error.message;
+
+            message.style.color = "red";
+
+        }
+
+        enterButton.disabled = false;
+        exitButton.disabled = false;
+
+    }
+
+
+    // Reset passenger count
+    async function resetOccupancy() {
+
+        const confirmation = confirm(
+            "Are you sure you want to reset the passenger count?"
+        );
+
+        if (!confirmation) {
+            return;
+        }
+
+        const button = document.getElementById("resetButton");
+
+        button.disabled = true;
+
+        try {
+
+            const response = await fetch(
+                API_URL + "/api/occupancy/" + BUS_ID + "/reset",
+                {
+                    method: "POST"
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.detail || "Reset failed"
+                );
+
+            }
+
+            document.getElementById("message").textContent =
+                "Passenger count has been reset.";
+
+            document.getElementById("message").style.color = "green";
+
+            await loadOccupancy();
+
+        }
+        catch (error) {
+
+            document.getElementById("message").textContent =
+                error.message;
+
+            document.getElementById("message").style.color = "red";
+
+        }
+
+        button.disabled = false;
+
+    }
+
+
+    // Load data when the page opens
+    window.onload = async function() {
+
+        await checkConnections();
+
+        await loadOccupancy();
+
+    };
+
+</script>
+
+</body>
+</html>
