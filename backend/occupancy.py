@@ -1,27 +1,32 @@
-def calculate_occupancy(passenger_count):
-    capacity = 25
 
-    if passenger_count < 0:
-        passenger_count = 0
+def calculate_crowd_status(passengers):
+    if passengers <= 10:
+        return "Quiet"
 
-    if passenger_count > capacity:
-        passenger_count = capacity
+    elif passengers <= 20:
+        return "Normal"
 
-    if passenger_count <= 10:
-        status = "Quiet"
-
-    elif passenger_count <= 20:
-        status = "Normal amount"
-
-    elif passenger_count < 25:
-        status = "Busy"
+    elif passengers < 25:
+        return "Busy"
 
     else:
-        status = "Full"
+        return "Full"
 
-    return {
-        "current_passengers": passenger_count,
-        "capacity": capacity,
-        "crowd_status": status,
-        "available_spaces": capacity - passenger_count
-    }
+
+def calculate_passenger_count(current, direction, quantity):
+    if direction == "in":
+        new_count = current + quantity
+
+    elif direction == "out":
+        new_count = current - quantity
+
+    else:
+        new_count = current
+
+    
+    new_count = max(0, new_count)
+
+    
+    new_count = min(25, new_count)
+
+    return new_count
