@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Driver view - Bus Tracker</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="theme-dark driver">
+  <a class="skip-link" href="#main">Skip to passenger count</a>
+  <header class="topbar">
+    <div>
+      <h1 id="bus-title">Driver view</h1>
+      <p id="route-line" class="route-line"></p>
+    </div>
+    <button id="logout" class="btn btn-small" type="button">Sign out</button>
+  </header>
+
+  <main id="main">
+    <p id="notice" class="notice" role="status" hidden></p>
+    <p id="alarm" class="alarm" role="alert" hidden>Over capacity - do not let more passengers board.</p>
+
+    <div class="driver-grid">
+      <section class="count-panel" aria-label="Passenger count">
+        <p class="label">Passengers on board</p>
+        <p id="count" class="count-number">--</p>
+        <p id="capacity" class="count-capacity">of --</p>
+        <div class="driver-actions">
+          <button id="reset-btn" class="btn" type="button">Reset count</button>
+          <button id="capacity-btn" class="btn" type="button">Set capacity</button>
+        </div>
+      </section>
+
+      <section aria-label="Crowd status">
+        <div id="status" class="status-block status-unknown">
+          <p id="status-word" class="status-word">NO DATA</p>
+          <p id="status-detail" class="status-detail">Waiting for the sensors</p>
+        </div>
+        <div class="bar" aria-hidden="true"><div id="bar-fill" class="bar-fill status-unknown"></div></div>
+        <section class="activity">
+          <h2>Recent activity</h2>
+          <ul id="activity-list" class="activity-list"></ul>
+          <p id="activity-empty" class="activity-empty">No activity yet.</p>
+        </section>
+      </section>
+    </div>
+    <p id="updated" class="muted driver-foot">Waiting for data...</p>
+  </main>
+
+  <dialog id="reset-dialog" aria-labelledby="reset-title">
+    <form method="dialog">
+      <h2 id="reset-title">Reset count to 0?</h2>
+      <p>Use this at the start of a trip. The recorded in/out events are kept.</p>
+      <div class="dialog-actions">
+        <button class="btn" value="cancel" type="submit">Cancel</button>
+        <button id="reset-confirm" class="btn btn-primary" value="ok" type="submit">Reset</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="capacity-dialog" aria-labelledby="capacity-title">
+    <form id="capacity-form" method="dialog">
+      <h2 id="capacity-title">Set capacity</h2>
+      <p>How many passengers can this bus carry?</p>
+      <label for="capacity-input">Capacity (1 to 200)</label>
+      <input id="capacity-input" type="number" min="1" max="200" step="1" inputmode="numeric" required>
+      <p id="capacity-error" class="field-error" role="alert" hidden></p>
+      <div class="dialog-actions">
+        <button class="btn" value="cancel" type="submit" formnovalidate>Cancel</button>
+        <button id="capacity-save" class="btn btn-primary" type="submit">Save</button>
+      </div>
+    </form>
+  </dialog>
+  <script type="module" src="js/driver.js"></script>
+</body>
+</html>
