@@ -1,42 +1,63 @@
-# Bus Tracker – IoT Project
+# Bus Tracker
 
-## Overview
-Bus Tracker is an IoT-based application that allows passengers to check whether a bus is full or has available space before boarding. The application also displays bus stop locations on a map using Google Maps API.
+An IoT system that tells passengers how full a bus is before they board, and alerts the driver when the bus is over capacity.
 
-The system uses two sensors connected to a Raspberry Pi installed on the bus to detect passengers entering and leaving. The Raspberry Pi calculates the current passenger count and sends the data to a backend system, where it is stored in MongoDB.
+Group SD3b-G5 (team AAB), Dundalk Institute of Technology.
+GitHub: https://github.com/Brandvie/Bus_Tracker
 
-The driver will receive a notification or alert when the bus reaches its maximum capacity, allowing them to monitor overcrowding.
+## How it works
 
+1. Sensors on the bus (IR break-beam and motion) detect passengers entering and leaving.
+2. A Raspberry Pi Zero 2 W counts them and sends the data to the back end (MQTT over TLS).
+3. The FastAPI back end stores the bus data in MongoDB and exposes a REST API.
+4. The web pages read the API every 5 seconds:
+   - **Passenger page** (`/`): Quiet / Busy / Full, places left, wheelchair space.
+   - **Driver page** (`/driver.html`): live count, over-capacity alarm, reset count, recent activity.
 
-## Technologies
-- **Hardware:** Raspberry Pi Zero 2 W, IR break-beam sensors, Motion sensor
-- **Programming:** Python
-- **Messaging:** MQTT over TLS
-- **Backend:** FastAPI
-- **Database:** SQLite
-- **Frontend:** HTML, CSS and JavaScript
-- **Version Control:** Git and GitHub
+Crowd levels: under 60% of capacity is Quiet, 60-90% is Busy, over 90% is Full.
 
-## Main Features
-- Automatic passenger counting
-- Live bus occupancy and crowd-level display
-- Overcrowding alarm
-- Recent boarding and alighting activity
-- Wheelchair-space availability indicator
+## Team
 
-## Project Structure
+| Member | Part |
+|---|---|
+| Abdi | Hardware and software testing |
+| Brandyvie | Back end and database |
+| Hafid | UX design and front end |
+
+## Project structure
+
 ```text
-bus-tracker/
-├── raspberry-pi/
-├── backend/
-├── frontend/
-├── docs/
-├── README.md
-└── .gitignore
+backend/    FastAPI app, MongoDB access, sensor and occupancy routes
+frontend/   index.html (passenger), driver.html, login.html, js/, css/
+docs/       API notes and design documents
 ```
 
-## Project Status
-Currently in development as part of a Scrum-based student project at Dundalk Institute of Technology (DkIT).
+## Run it
 
-## Privacy
-The system counts passenger movements without identifying individual passengers.
+Requirements: Python, [uv](https://docs.astral.sh/uv/) and MongoDB running locally.
+
+```
+cd backend
+copy .env.example .env
+uv run --with-requirements requirements.txt uvicorn main:app --reload
+```
+
+Open http://127.0.0.1:8000/ (passenger) and http://127.0.0.1:8000/driver.html (driver).
+
+To try it without MongoDB: `python frontend/dev/mock_server.py`, then open http://localhost:8080/.
+
+Simulate passengers boarding (PowerShell):
+
+```
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/api/occupancy/DKIT_BUS_01/movement -ContentType "application/json" -Body '{"direction":"in","quantity":5}'
+```
+
+## Security
+
+- Secrets live in `backend/.env`, which is git-ignored (`.env.example` shows the format).
+- The front end builds all page text with `textContent`, so server data is never inserted as HTML.
+- Pages redirect to the login page when the API answers 401.
+
+## Status
+
+Alpha prototype for G-CA2. Not done yet: login and driver-only permissions on the API, setting capacity from the driver page, and the AWS HTTPS deployment.
