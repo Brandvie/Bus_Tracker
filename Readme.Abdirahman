@@ -1,0 +1,22 @@
+Bus Tracker
+
+ Abdirahman (Raspberry Pi and sensor) Repository: https://github.com/Brandvie/Bus_Tracker Screencast: <https://drive.google.com/file/d/1cNmQQzZEy_o95czCYBwEW4iHOxGEgcSY/view?usp=drive_link>
+
+What it does
+
+A Raspberry Pi with a PIR motion sensor counts passengers boarding a bus. It sends each event to a FastAPI backend, and the website shows how full the bus is. In the final project we will use another sensor.
+
+Raspberry Pi part
+Wiring: VCC to pin 2, GND to pin 6, OUT to pin 11 (GPIO17). See bus_tracker.png
+pir_send.py: sends an event to the backend on each motion
+pir_test.py and fake_backend.py: used for testing
+
+Run: python3 pir_send.py (needs a .env file with API_BASE and API_KEY)
+
+Security
+API key is in .env, not in GitHub
+Wrong key returns 401
+Known issues
+One PIR sensor cannot tell in from out
+AWS, HTTPS and pub-sub are planned
+Pi was tested with a local test server
