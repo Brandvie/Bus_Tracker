@@ -16,7 +16,7 @@ export const STATUS_LABEL = {
   unknown: 'NO DATA',
 };
 
-const PAGES = ['passenger.html', 'driver.html'];
+const PAGES = ['index.html', 'driver.html'];
 
 export class AuthError extends Error {
   constructor(message = 'Not logged in') {
@@ -26,11 +26,16 @@ export class AuthError extends Error {
 }
 
 // ---------------------------------------------------------------- API calls
+// Talks to the FastAPI back end in ../backend (same server, so no CORS needed).
+
+// The back end has no "set capacity" route yet (capacity is fixed in database.py),
+// so the driver page hides that button. Set to true once the route exists.
+export const CAPACITY_EDITABLE = false;
 
 async function request(path, { method = 'GET', body } = {}) {
   const options = {
     method,
-    credentials: 'same-origin', // the session cookie is set by the server, JS never sees it
+    credentials: 'same-origin', // session cookie (once the back end has login)
     headers: { Accept: 'application/json' },
   };
   if (body !== undefined) {
@@ -47,21 +52,40 @@ async function request(path, { method = 'GET', body } = {}) {
   return res.status === 204 ? null : res.json();
 }
 
+// Back end field names -> the names the pages use.
+function normaliseBus(b) {
+  return {
+    id: b.bus_id,
+    route: b.route || '',
+    name: b.name || String(b.bus_id).replace(/_/g, ' '),
+    capacity: b.capacity,
+    count: b.current_passengers,
+    wheelchair_free: b.wheelchair_free ?? null,
+    eta_minutes: b.eta_minutes ?? null,
+    motion: Boolean(b.motion_detected),
+  };
+}
+
 export const login = (username, password) =>
   request('/api/login', { method: 'POST', body: { username, password } });
 export const logout = () => request('/api/logout', { method: 'POST' });
-export const getMe = () => request('/api/me');
-export const getBuses = () => request('/api/buses');
-export const getBus = (id) => request(`/api/buses/${encodeURIComponent(id)}`);
-export const getEvents = (id, limit = 5) =>
-  request(`/api/buses/${encodeURIComponent(id)}/events?limit=${limit}`);
+
+// Until the back end has login there is no /api/me (404). Then everyone is a "guest"
+// and the pages open without a sign-in. Once /api/me exists, login is enforced.
+export async function getMe() {
+  try {
+    return await request('/api/me');
+  } catch (err) {
+    if (err.status === 404) return { username: 'guest', role: 'guest' };
+    throw err;
+  }
+}
+
+export const getBuses = async () => (await request('/api/buses/')).map(normaliseBus);
 export const resetCount = (id) =>
-  request(`/api/buses/${encodeURIComponent(id)}/reset`, { method: 'POST' });
+  request(`/api/occupancy/${encodeURIComponent(id)}/reset`, { method: 'POST' });
 export const setCapacity = (id, capacity) =>
-  request(`/api/buses/${encodeURIComponent(id)}/capacity`, {
-    method: 'POST',
-    body: { capacity },
-  });
+  request(`/api/buses/${encodeURIComponent(id)}/capacity`, { method: 'POST', body: { capacity } });
 
 // ------------------------------------------------------------ login handling
 

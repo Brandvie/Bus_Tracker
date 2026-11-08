@@ -5,7 +5,7 @@ const errorBox = document.getElementById('login-error');
 const button = document.getElementById('login-btn');
 
 function homeFor(user) {
-  return safeNext() || (user.role === 'driver' ? 'driver.html' : 'passenger.html');
+  return safeNext() || (user.role === 'driver' ? 'driver.html' : 'index.html');
 }
 
 // Already signed in? Skip the form.
