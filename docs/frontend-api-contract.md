@@ -1,25 +1,20 @@
-# Front end <-> back end API contract
+# Front end <-> back end API
 
-What the pages in `frontend/` expect from the FastAPI back end. If the back end differs, change `frontend/js/api.js` only (one place).
-Run the pages without the real back end: `python frontend/dev/mock_server.py`.
+The front end in `frontend/` uses these routes of the FastAPI back end in `backend/`. All JSON, same server (the back end serves the front end, so no CORS).
+Field names are translated in one place: `frontend/js/api.js`.
 
-All JSON. Login uses an **HttpOnly session cookie** set by the server (the JS never stores a token).
-Any endpoint except `POST /api/login` answers **401** when not logged in; the pages then go to `login.html`.
+| Method | Path | Used for |
+|---|---|---|
+| GET | `/api/buses/` | List of buses: `bus_id, capacity, current_passengers, crowd_status, motion_detected, active` |
+| POST | `/api/occupancy/{bus_id}/reset` | Driver "Reset count" |
+| POST | `/api/occupancy/{bus_id}/movement` | Sensor/Pi: `{"direction":"in"\|"out","quantity":1}` |
+| GET | `/api/me`, POST `/api/login`, `/api/logout` | **Not built yet.** If `/api/me` returns 404 the pages open as "guest". Once it exists the pages redirect to `login.html` on a 401 |
 
-| Method | Path | Body | Response |
-|---|---|---|---|
-| POST | `/api/login` | `{"username","password"}` | `200 {"username","role"}` (`role` = `driver` or `passenger`) + `Set-Cookie`; `401` if wrong |
-| POST | `/api/logout` | - | `204`, cookie cleared |
-| GET | `/api/me` | - | `{"username","role"}` |
-| GET | `/api/buses` | - | list of buses (below) |
-| GET | `/api/buses/{id}/events?limit=5` | - | `[{"type":"IN"\|"OUT","time":"ISO-8601"}]`, newest first |
-| POST | `/api/buses/{id}/reset` | - | updated bus. Driver only |
-| POST | `/api/buses/{id}/capacity` | `{"capacity": 1-200}` | updated bus. Driver only |
+The front end works out Quiet / Busy / Full from `current_passengers / capacity` (under 60% Quiet, 60-90% Busy, over 90% Full).
+The "recent activity" list is built in the browser from count changes (there is no events route yet).
 
-Bus object: `{"id","route","name","capacity","count","wheelchair_free": true|false|null,"eta_minutes": number|null}`
-
-`count` is derived from the IN/OUT events. The front end works out Quiet / Busy / Full from `count / capacity`
-(under 60% Quiet, 60-90% Busy, over 90% Full).
-
-Security notes for the back end: validate `capacity` as an integer 1-200, check the role on the reset and capacity routes,
-set the cookie `HttpOnly; Secure; SameSite=Strict` once on HTTPS, and keep secrets in `.env` (never committed).
+## Still missing on the back end (needed for the CA2 security marks)
+- Login and sessions, and a check that only drivers can call `reset` and `movement` / `count`.
+- A "set capacity" route (`POST /api/buses/{id}/capacity`). Then set `CAPACITY_EDITABLE = true` in `api.js`.
+- `crowd_status` in the database uses counts (10/20/25) while the screens use percentages: pick one rule.
+- `.env` must stay out of git (see `.gitignore`); copy `backend/.env.example` to `backend/.env`.
