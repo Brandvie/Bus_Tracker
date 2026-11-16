@@ -1,0 +1,324 @@
+# DkIT Bus Tracker – API Design
+
+## 1. Introduction
+
+The DkIT Bus Tracker API provides communication between the frontend web application, the backend server, the Raspberry Pi sensor system, and the MongoDB database.
+
+The system allows passengers to check bus occupancy and crowd levels before boarding. The Raspberry Pi detects movement using a motion sensor and sends information to the backend. The backend processes and stores the occupancy information in MongoDB.
+
+### Technology Stack
+
+- **Backend:** Python FastAPI
+- **Database:** MongoDB
+- **Hardware:** Raspberry Pi Zero 2 W
+- **Sensor:** PIR Motion Sensor (Alpha)
+- **Frontend:** HTML, JavaScript, CSS
+- **Communication:** REST API using HTTP and JSON
+
+## 2. API Base URL
+
+During local development, the API is hosted at:
+
+`http://127.0.0.1:8000`
+
+The API uses JSON for sending and receiving data.
+
+## 3. API Endpoints
+
+### 3.1 Backend Connection
+
+| Attribute | Details |
+|---|---|
+| Endpoint | `/` |
+| HTTP Method | GET |
+| Purpose | Check if the backend server is running |
+| Access | Frontend |
+
+**Example Response:**
+
+```json
+{
+  "message": "Welcome to DkIT Bus Tracker API",
+  "status": "Backend is running"
+}
+```
+
+### 3.2 MongoDB Connection
+
+| Attribute | Details |
+|---|---|
+| Endpoint | `/database` |
+| HTTP Method | GET |
+| Purpose | Check the connection between the backend and MongoDB |
+| Access | Frontend |
+
+**Example Response:**
+
+```json
+{
+  "message": "MongoDB connection successful",
+  "database": "bus_tracker"
+}
+```
+
+### 3.3 Retrieve All Buses
+
+| Attribute | Details |
+|---|---|
+| Endpoint | `/api/buses/` |
+| HTTP Method | GET |
+| Purpose | Retrieve information about all registered buses |
+| Access | Frontend |
+
+**Example Response:**
+
+```json
+[
+  {
+    "bus_id": "DKIT_BUS_01",
+    "capacity": 25,
+    "current_passengers": 12,
+    "crowd_status": "Normal",
+    "active": true
+  }
+]
+```
+
+### 3.4 Retrieve Bus Information
+
+| Attribute | Details |
+|---|---|
+| Endpoint | `/api/buses/{bus_id}` |
+| HTTP Method | GET |
+| Purpose | Retrieve details about a specific bus |
+| Access | Frontend |
+
+**Example Request:**
+
+`GET /api/buses/DKIT_BUS_01`
+
+### 3.5 Retrieve Current Occupancy
+
+| Attribute | Details |
+|---|---|
+| Endpoint | `/api/occupancy/{bus_id}` |
+| HTTP Method | GET |
+| Purpose | Retrieve the current passenger count and crowd status |
+| Access | Frontend |
+
+**Example Request:**
+
+`GET /api/occupancy/DKIT_BUS_01`
+
+**Example Response:**
+
+```json
+{
+  "bus_id": "DKIT_BUS_01",
+  "current_passengers": 12,
+  "capacity": 25,
+  "crowd_status": "Normal",
+  "motion_detected": true
+}
+```
+
+### 3.6 Record Passenger Movement
+
+| Attribute | Details |
+|---|---|
+| Endpoint | `/api/occupancy/{bus_id}/movement` |
+| HTTP Method | POST |
+| Purpose | Update the passenger count when passengers enter or leave |
+| Access | Raspberry Pi / Frontend Alpha simulation |
+
+**Request Body – Passenger Entering:**
+
+```json
+{
+  "direction": "in",
+  "quantity": 1
+}
+```
+
+**Request Body – Passenger Leaving:**
+
+```json
+{
+  "direction": "out",
+  "quantity": 1
+}
+```
+
+**Example Response:**
+
+```json
+{
+  "bus_id": "DKIT_BUS_01",
+  "current_passengers": 13,
+  "capacity": 25,
+  "crowd_status": "Normal"
+}
+```
+
+The backend updates the passenger count and calculates the new crowd status. The passenger count must remain between 0 and 25.
+
+### 3.7 Update Passenger Count
+
+| Attribute | Details |
+|---|---|
+| Endpoint | `/api/occupancy/{bus_id}/count` |
+| HTTP Method | POST |
+| Purpose | Set the passenger count to a specified value |
+| Access | Backend / Alpha testing |
+
+**Request Body:**
+
+```json
+{
+  "count": 15
+}
+```
+
+This endpoint is useful for testing different occupancy levels during development.
+
+### 3.8 Reset Passenger Occupancy
+
+| Attribute | Details |
+|---|---|
+| Endpoint | `/api/occupancy/{bus_id}/reset` |
+| HTTP Method | POST |
+| Purpose | Reset the current passenger count to zero |
+| Access | Alpha testing / Driver functionality |
+
+**Example Request:**
+
+`POST /api/occupancy/DKIT_BUS_01/reset`
+
+**Example Response:**
+
+```json
+{
+  "bus_id": "DKIT_BUS_01",
+  "current_passengers": 0,
+  "capacity": 25,
+  "crowd_status": "Quiet"
+}
+```
+
+### 3.9 Record Sensor Readings
+
+| Attribute | Details |
+|---|---|
+| Endpoint | `/api/sensors/readings` |
+| HTTP Method | POST |
+| Purpose | Receive sensor readings from the Raspberry Pi |
+| Access | Raspberry Pi |
+
+**Example Request Body:**
+
+```json
+{
+  "bus_id": "DKIT_BUS_01",
+  "sensor_type": "PIR",
+  "motion_detected": true
+}
+```
+
+The backend stores the sensor reading in MongoDB for monitoring and historical records.
+
+*Note: This endpoint assumes the sensor router implements `/readings`. The exact route and request model should match the current `routes/sensors.py` implementation.*
+
+## 4. Crowd Status Calculation
+
+The backend calculates the crowd status based on the current passenger count.
+
+| Passenger Count | Crowd Status |
+|---|---|
+| 0–10 | Quiet |
+| 11–20 | Normal |
+| 21–24 | Busy |
+| 25 | Full |
+
+The maximum bus capacity is 25 passengers.
+
+The backend is responsible for calculating the status, ensuring the frontend receives a consistent result.
+
+## 5. Database Interaction
+
+The API communicates with MongoDB database `bus_tracker`.
+
+The main collections are:
+
+| Collection | Purpose |
+|---|---|
+| `buses` | Stores bus information, capacity, current occupancy and status |
+| `occupancy` | Stores passenger occupancy history |
+| `sensor_readings` | Stores sensor readings and timestamps |
+
+When a passenger movement is received, the backend updates the bus's current occupancy and records the relevant history.
+
+## 6. Error Handling
+
+The API should return appropriate HTTP status codes.
+
+| HTTP Status | Meaning |
+|---|---|
+| 200 | Request successful |
+| 201 | Resource created, where applicable |
+| 400 | Invalid request |
+| 404 | Bus or resource not found |
+| 422 | Request validation error |
+| 500 | Internal server error |
+| 503 | Database service unavailable |
+
+Example error response:
+
+```json
+{
+  "detail": "Bus not found"
+}
+```
+
+## 7. API Security
+
+For the Alpha version:
+
+- The API is used within the local development network.
+- CORS is configured to allow the frontend to communicate with FastAPI.
+- Request data is validated using Pydantic models.
+- Passenger counts must not exceed the bus capacity.
+- Authentication and user accounts are not currently included in the Alpha scope.
+
+For a future release, authentication, authorization, HTTPS, and secure sensor communication should be implemented.
+
+## 8. API Testing
+
+The API can be tested using FastAPI Swagger UI:
+
+`http://127.0.0.1:8000/docs`
+
+The following tests should be carried out:
+
+- Verify that the backend is running.
+- Verify the MongoDB connection.
+- Retrieve the current bus occupancy.
+- Simulate passengers entering and leaving.
+- Test the Quiet, Normal, Busy, and Full status levels.
+- Verify that the passenger count cannot exceed 25.
+- Verify that the passenger count cannot fall below zero.
+- Test the reset occupancy endpoint.
+- Verify that sensor readings are stored in MongoDB.
+
+## 9. Future API Improvements
+
+Future versions of the DkIT Bus Tracker may include:
+
+- Integration with the matrix Time-of-Flight sensor.
+- Improved passenger counting using entry and exit detection.
+- Driver dashboard and alert endpoints.
+- Authentication and user account management.
+- Bus stop and location endpoints.
+- Real-time occupancy updates using WebSockets.
+- google maps API/gps
+
+
